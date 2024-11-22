@@ -1,0 +1,15 @@
+[build]
+publish = "public" # Diretório onde estão os arquivos estáticos
+functions = "functions" # Diretório onde estão as funções serverless
+
+[[redirects]]
+# Rotas para funções serverless
+from = "/*"
+to = "/.netlify/functions/:splat"
+status = 200
+
+[[redirects]]
+# Redirecionar todas as rotas para o index.html (SPA, se aplicável)
+from = "/*"
+to = "/index.html"
+status = 200
