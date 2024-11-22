@@ -1,7 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
-const path = require('path');
+const path = require('path'); // Importa o módulo path
 
 const app = express();
 app.use(bodyParser.json());
@@ -9,9 +9,9 @@ app.use(bodyParser.json());
 // Configuração de conexão ao MySQL
 const db = mysql.createConnection({
     host: 'brqlwluvsqivy21cx7b9-mysql.services.clever-cloud.com',
-    user: 'ubdvgysdirg5klgl',
-    password: 'hsjUjsF5gKxv5mqrsXgz',
-    database: 'brqlwluvsqivy21cx7b9'
+    user: 'ubdvgysdirg5klgl', // Seu usuário do MySQL
+    password: 'hsjUjsF5gKxv5mqrsXgz', // Sua senha do MySQL
+    database: 'brqlwluvsqivy21cx7b9' // O banco de dados criado
 });
 
 db.connect((err) => {
@@ -26,6 +26,7 @@ db.connect((err) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Rotas da API
+
 app.get('/estruturas', (req, res) => {
     const query = 'SELECT * FROM estruturas';
     db.query(query, (err, results) => {
@@ -87,5 +88,8 @@ app.delete('/estruturas/:id', (req, res) => {
     });
 });
 
-// Exporta o manipulador
-module.exports = app;
+// Iniciar o servidor
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});
