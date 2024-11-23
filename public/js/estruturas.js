@@ -12,7 +12,12 @@ function buscarEstruturas() {
             <td>${item.id}</td>
             <td>${item.nome}</td>
             <td>
-              <button class="btn btn-warning btn-sm" onclick="editarEstrutura(${item.id})">Editar</button>
+              <button 
+                class="btn btn-warning btn-sm" 
+                onclick="editarEstrutura(${item.id}, '${item.nome}')"
+              >
+                Editar
+              </button>
               <button class="btn btn-danger btn-sm" onclick="deletarEstrutura(${item.id})">Excluir</button>
             </td>
           </tr>
@@ -90,5 +95,47 @@ function adicionarEstrutura() {
     });
 }
 
+function editarEstrutura(id, nome) {
+  editingId = id; // Salva o ID para uso posterior
+  const nomeInput = document.getElementById('editNomeEstrutura');
+  nomeInput.value = nome; // Preenche o campo com o nome atual
 
+  // Abre o modal
+  const editStructureModal = new bootstrap.Modal(document.getElementById('editStructureModal'));
+  editStructureModal.show();
+}
+
+
+function salvarEdicaoEstrutura() {
+  const nomeInput = document.getElementById('editNomeEstrutura');
+  const novoNome = nomeInput.value.trim();
+
+  if (!novoNome) {
+    showAlert('O nome da estrutura é obrigatório.', 'danger');
+    return;
+  }
+
+  fetch('/editar_estrutura', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ id: editingId, nome: novoNome }),
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        showAlert('Erro ao editar estrutura.', 'danger');
+      } else {
+        showAlert('Estrutura editada com sucesso!', 'success');
+        const editStructureModal = bootstrap.Modal.getInstance(document.getElementById('editStructureModal'));
+        editStructureModal.hide(); // Fecha o modal
+        buscarEstruturas(); // Atualiza a tabela
+      }
+    })
+    .catch(error => {
+      console.error('Erro ao editar estrutura:', error);
+      showAlert('Erro ao editar estrutura.', 'danger');
+    });
+}
 
