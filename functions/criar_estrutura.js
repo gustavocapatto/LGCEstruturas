@@ -1,39 +1,44 @@
-const mysql = require('mysql2/promise');
-
-const dbConfig = {
-    host: 'brqlwluvsqivy21cx7b9-mysql.services.clever-cloud.com',
-    user: 'ubdvgysdirg5klgl',
-    password: 'hsjUjsF5gKxv5mqrsXgz',
-    database: 'brqlwluvsqivy21cx7b9',
-};
+const { getConnection } = require('./dbConfig');
 
 exports.handler = async (event, context) => {
     try {
-        // Parse o corpo da requisição para JSON
+        // Parse o corpo da requisição para obter os dados enviados
         const body = JSON.parse(event.body);
+        const { nome } = body;
 
-        if (!body.nome) {
+        // Validações básicas
+        if (!nome || nome.trim() === '') {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: 'O campo "nome" é obrigatório' }),
+                body: JSON.stringify({ error: 'O campo "nome" é obrigatório.' }),
             };
         }
 
-        const connection = await mysql.createConnection(dbConfig);
-        const query = 'INSERT INTO estruturas (nome) VALUES (?)';
-        const [result] = await connection.execute(query, [body.nome]);
+        // Conexão com o banco de dados
+        const connection = await getConnection();
 
+        // Inserir a nova estrutura
+        const [result] = await connection.execute(
+            'INSERT INTO estruturas (nome) VALUES (?)',
+            [nome]
+        );
+
+        // Finalizar conexão
         await connection.end();
 
+        // Responder com sucesso
         return {
             statusCode: 201,
-            body: JSON.stringify({ id: result.insertId, nome: body.nome }),
+            body: JSON.stringify({
+                message: 'Estrutura criada com sucesso!',
+                estruturaId: result.insertId,
+            }),
         };
     } catch (err) {
         return {
             statusCode: 500,
             body: JSON.stringify({
-                error: 'Erro ao acessar o banco de dados',
+                error: 'Erro ao criar estrutura',
                 details: err.message,
             }),
         };

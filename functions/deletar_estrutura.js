@@ -1,27 +1,28 @@
-const mysql = require('mysql2/promise');
-
-const dbConfig = {
-    host: 'brqlwluvsqivy21cx7b9-mysql.services.clever-cloud.com',
-    user: 'ubdvgysdirg5klgl',
-    password: 'hsjUjsF5gKxv5mqrsXgz',
-    database: 'brqlwluvsqivy21cx7b9',
-};
+const { getConnection } = require('./dbConfig');
 
 exports.handler = async (event, context) => {
     try {
-        // Parse os parâmetros da requisição
-        const id = event.pathParameters.id;
+        // Obter o ID da estrutura a ser deletada
+        const { id } = JSON.parse(event.body);
 
-        const connection = await mysql.createConnection(dbConfig);
-        const query = 'DELETE FROM estruturas WHERE id = ?';
-        const [result] = await connection.execute(query, [id]);
+        if (!id) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'ID da estrutura é obrigatório' }),
+            };
+        }
 
+        // Conectar ao banco de dados
+        const connection = await getConnection();
+        
+        // Executar o comando DELETE
+        const [result] = await connection.execute('DELETE FROM estruturas WHERE id = ?', [id]);
         await connection.end();
 
         if (result.affectedRows === 0) {
             return {
                 statusCode: 404,
-                body: JSON.stringify({ message: 'Estrutura não encontrada' }),
+                body: JSON.stringify({ error: 'Estrutura não encontrada' }),
             };
         }
 
@@ -32,10 +33,7 @@ exports.handler = async (event, context) => {
     } catch (err) {
         return {
             statusCode: 500,
-            body: JSON.stringify({
-                error: 'Erro ao acessar o banco de dados',
-                details: err.message,
-            }),
+            body: JSON.stringify({ error: 'Erro ao deletar estrutura', details: err.message }),
         };
     }
 };

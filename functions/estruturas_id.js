@@ -1,17 +1,10 @@
-const mysql = require('mysql2/promise');
-
-const dbConfig = {
-    host: 'brqlwluvsqivy21cx7b9-mysql.services.clever-cloud.com',
-    user: 'ubdvgysdirg5klgl',
-    password: 'hsjUjsF5gKxv5mqrsXgz',
-    database: 'brqlwluvsqivy21cx7b9',
-};
+const { getConnection } = require('./dbConfig');
 
 exports.handler = async (event, context) => {
     const id = event.queryStringParameters.id; // Pega o ID da query string
 
     try {
-        const connection = await mysql.createConnection(dbConfig);
+        const connection = await getConnection();
         const [results] = await connection.execute('SELECT * FROM estruturas WHERE id = ?', [id]);
         await connection.end();
 

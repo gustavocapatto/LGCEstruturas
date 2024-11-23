@@ -1,24 +1,5 @@
 let editingId = null;
 
-function showSection(sectionId, menuItem) {
-  document.querySelectorAll('.content-section').forEach(section => {
-    section.classList.add('d-none');
-  });
-
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.classList.remove('active');
-  });
-
-  document.getElementById(sectionId).classList.remove('d-none');
-
-  menuItem.classList.add('active');
-
-
-  if (sectionId === 'estruturas') {
-    buscarEstruturas();
-  }
-}
-
 function buscarEstruturas() {
   fetch('/estruturas')
     .then(response => response.json())
@@ -44,83 +25,70 @@ function buscarEstruturas() {
     });
 }
 
+function deletarEstrutura(id) {
+  if (confirm('Tem certeza de que deseja excluir esta estrutura?')) {
+      fetch('/deletar_estrutura', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          showAlert('Erro ao excluir estrutura.', 'danger');
+        } else {
+          showAlert('Estrutura excluída com sucesso!', 'success');
+          buscarEstruturas(); // Atualiza a lista
+        }
+      })
+      .catch(error => {
+        showAlert('Erro ao excluir estrutura.', error, 'danger');
+      });
+  }
+}
+
+function abrirModalAdicionarEstrutura() {
+  const addStructureModal = new bootstrap.Modal(document.getElementById('addStructureModal'));
+  addStructureModal.show();
+}
+
 function adicionarEstrutura() {
-  editingId = null;
-  document.getElementById('modalTitle').textContent = 'Adicionar Estrutura';
-  document.getElementById('nome').value = '';
-  const modal = new bootstrap.Modal(document.getElementById('estruturaModal'));
-  modal.show();
-}
+  const nameInput = document.getElementById('nomeEstrutura');
+  const structureName = nameInput.value.trim();
 
-function editarEstrutura(id) {
-  fetch(`/estruturas_id/${id}`)
-    .then(response => response.json())
-    .then(data => {
-      editingId = data.id;
-      document.getElementById('modalTitle').textContent = 'Editar Estrutura';
-      document.getElementById('nome').value = data.nome;
-      const modal = new bootstrap.Modal(document.getElementById('estruturaModal'));
-      modal.show();
-    })
-    .catch(error => {
-      console.error('Erro ao buscar estrutura:', error);
-    });
-}
+  if (!structureName) {
+    showAlert('O nome da estrutura é obrigatório.', 'danger');
+    return;
+  }
 
-function salvarEstrutura() {
-  const nome = document.getElementById('nome').value;
-
-  if (editingId) {
-    fetch(`/atualizar_estrutura?id=${editingId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ nome }),
-    })
-    .then(response => response.json())
-    .then(data => {
-      alert('Estrutura atualizada com sucesso!');
-      buscarEstruturas();
-      const modal = bootstrap.Modal.getInstance(document.getElementById('estruturaModal'));
-      modal.hide();
-    })
-    .catch(error => {
-      console.error('Erro ao editar estrutura:', error);
-    });
-  } else {
-    fetch('/estruturas', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ nome }),
-    })
-    .then(response => response.json())
-    .then(data => {
-      alert('Estrutura adicionada com sucesso!');
-      buscarEstruturas();
-      const modal = bootstrap.Modal.getInstance(document.getElementById('estruturaModal'));
-      modal.hide();
+  // Enviar os dados ao backend
+  fetch('/criar_estrutura', {
+    method: 'POST', 
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ nome: structureName }),
+  })
+    .then(response => {
+      if (response.ok) {
+        showAlert('Estrutura adicionada com sucesso!', 'success');
+        nameInput.value = ''; // Limpa o campo de entrada
+        const addStructureModal = bootstrap.Modal.getInstance(document.getElementById('addStructureModal'));
+        addStructureModal.hide(); // Fecha o modal
+        buscarEstruturas(); // Atualiza a tabela
+      } else {
+        response.json().then(data => {
+          showAlert(data.error || 'Erro ao adicionar estrutura.', 'danger');
+        });
+      }
     })
     .catch(error => {
       console.error('Erro ao adicionar estrutura:', error);
+      showAlert('Erro ao adicionar estrutura.', 'danger');
     });
-  }
 }
 
-function deletarEstrutura(id) {
-  if (confirm('Tem certeza de que deseja excluir esta estrutura?')) {
-    fetch(`/estruturas/${id}`, {
-      method: 'DELETE',
-    })
-    .then(response => response.json())
-    .then(data => {
-      alert('Estrutura excluída com sucesso!');
-      buscarEstruturas();
-    })
-    .catch(error => {
-      console.error('Erro ao excluir estrutura:', error);
-    });
-  }
-}
+
+
