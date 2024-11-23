@@ -53,7 +53,7 @@ function adicionarEstrutura() {
 }
 
 function editarEstrutura(id) {
-  fetch(`/atualizar_estrutura/${id}`)
+  fetch(`/estruturas_id?id=${id}`)
     .then(response => response.json())
     .then(data => {
       editingId = data.id;
