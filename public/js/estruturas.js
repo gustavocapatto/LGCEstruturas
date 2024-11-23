@@ -53,7 +53,7 @@ function adicionarEstrutura() {
 }
 
 function editarEstrutura(id) {
-  fetch(`/estruturas/${id}`)
+  fetch(`/atualizar_estrutura/${id}`)
     .then(response => response.json())
     .then(data => {
       editingId = data.id;
@@ -71,7 +71,7 @@ function salvarEstrutura() {
   const nome = document.getElementById('nome').value;
 
   if (editingId) {
-    fetch(`/estruturas/${editingId}`, {
+    fetch(`/criar_estrutura/${editingId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ function salvarEstrutura() {
 
 function deletarEstrutura(id) {
   if (confirm('Tem certeza de que deseja excluir esta estrutura?')) {
-    fetch(`/estruturas/${id}`, {
+    fetch(`/deletar_estrutura/${id}`, {
       method: 'DELETE',
     })
     .then(response => response.json())
