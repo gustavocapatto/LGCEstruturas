@@ -2,33 +2,66 @@ let editingId = null;
 
 function buscarEstruturas() {
   fetch('/estruturas')
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erro ao buscar dados');
+      }
+      return response.json();
+    })
     .then(data => {
       const tableBody = document.getElementById('estruturasTableBody');
-      tableBody.innerHTML = '';
+      tableBody.innerHTML = ''; // Limpar o conteúdo atual da tabela
+
+      if (data.length === 0) {
+        // Exibe uma mensagem quando não há dados
+        const emptyRow = document.createElement('tr');
+        const emptyCell = document.createElement('td');
+        emptyCell.colSpan = 3;
+        emptyCell.classList.add('text-center', 'text-muted', 'py-4');
+        emptyCell.textContent = 'Nenhuma estrutura encontrada.';
+        emptyRow.appendChild(emptyCell);
+        tableBody.appendChild(emptyRow);
+        return;
+      }
+
       data.forEach(item => {
-        const row = `
-          <tr>
-            <td>${item.id}</td>
-            <td>${item.nome}</td>
-            <td>
-              <button 
-                class="btn btn-warning btn-sm" 
-                onclick="editarEstrutura(${item.id}, '${item.nome}')"
-              >
-                Editar
-              </button>
-              <button class="btn btn-danger btn-sm" onclick="deletarEstrutura(${item.id})">Excluir</button>
-            </td>
-          </tr>
+        const row = document.createElement('tr');
+
+        // Adiciona as células para cada coluna
+        row.innerHTML = `
+          <td class="text-start">${item.id}</td>
+          <td class="text-end">${item.nome}</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary me-2" onclick="editarEstrutura(${item.id}, '${item.nome}')">
+              <i class="bi bi-pencil-square"></i> Editar
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deletarEstrutura(${item.id})">
+              <i class="bi bi-trash"></i> Excluir
+            </button>
+          </td>
         `;
-        tableBody.innerHTML += row;
+
+        // Adiciona a linha ao corpo da tabela
+        tableBody.appendChild(row);
       });
     })
     .catch(error => {
       console.error('Erro ao buscar estruturas:', error);
+
+      // Exibe uma mensagem de erro na tabela
+      const tableBody = document.getElementById('estruturasTableBody');
+      tableBody.innerHTML = '';
+      const errorRow = document.createElement('tr');
+      const errorCell = document.createElement('td');
+      errorCell.colSpan = 3;
+      errorCell.classList.add('text-center', 'text-danger', 'py-4');
+      errorCell.textContent = 'Erro ao carregar estruturas. Tente novamente mais tarde.';
+      errorRow.appendChild(errorCell);
+      tableBody.appendChild(errorRow);
     });
 }
+
+
 
 function deletarEstrutura(id) {
   if (confirm('Tem certeza de que deseja excluir esta estrutura?')) {
