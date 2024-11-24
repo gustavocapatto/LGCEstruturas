@@ -1,64 +1,131 @@
-function buscarMateriais() {
-  fetch('/materiais')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Erro ao buscar dados');
-      }
-      return response.json();
-    })
-    .then(data => {
-      const tableBody = document.getElementById('materiaisTableBody');
-      tableBody.innerHTML = ''; // Limpa o conteúdo atual da tabela
-      listaDeMateriais = data;
-      if (data.length === 0) {
-        // Exibe uma mensagem quando não há dados
-        const emptyRow = document.createElement('tr');
-        const emptyCell = document.createElement('td');
-        emptyCell.colSpan = 4; // Ajustar o colspan para o número de colunas na tabela
-        emptyCell.classList.add('text-center', 'text-muted', 'py-4');
-        emptyCell.textContent = 'Nenhum material encontrado.';
-        emptyRow.appendChild(emptyCell);
-        tableBody.appendChild(emptyRow);
-        return;
-      }
+let listaDeMateriais = []; // Armazena todos os materiais
+let currentPage = 1; // Página inicial
+const itemsPerPage = 100; // Número de itens por página
+let filtroAtual = ''; // Armazena o ID atual do filtro
 
-      data.forEach(item => {
-        const row = document.createElement('tr');
+// Buscar os materiais da API
+async function buscarMateriais() {
+  try {
+    const response = await fetch('/materiais');
+    if (!response.ok) throw new Error('Erro ao buscar dados');
 
-        // Adiciona as células para cada coluna
-        row.innerHTML = `
-            <td class="text-start">${item.id}</td>
-            <td class="text-start">${item.nome}</td>
-            <td class="text-start">${item.unidade_de_medida}</td>
-            <td class="text-end">
-              <button class="btn btn-sm btn-outline-primary me-2" onclick="editarMaterial(${item.id}, '${item.nome}', '${item.unidade_de_medida}')">
-                <i class="bi bi-pencil-square"></i> Editar
-              </button>
-              <button class="btn btn-sm btn-outline-danger" onclick="showDeleteModal(${item.id})">
-                <i class="bi bi-trash"></i> Excluir
-              </button>
-            </td>
-          `;
-
-        // Adiciona a linha ao corpo da tabela
-        tableBody.appendChild(row);
-      });
-    })
-    .catch(error => {
-      console.error('Erro ao buscar materiais:', error);
-
-      // Exibe uma mensagem de erro na tabela
-      const tableBody = document.getElementById('materiaisTableBody');
-      tableBody.innerHTML = '';
-      const errorRow = document.createElement('tr');
-      const errorCell = document.createElement('td');
-      errorCell.colSpan = 4; // Ajustar o colspan para o número de colunas na tabela
-      errorCell.classList.add('text-center', 'text-danger', 'py-4');
-      errorCell.textContent = 'Erro ao carregar materiais. Tente novamente mais tarde.';
-      errorRow.appendChild(errorCell);
-      tableBody.appendChild(errorRow);
-    });
+    listaDeMateriais = await response.json();
+    aplicarFiltro(); // Aplica o filtro atual e renderiza a tabela
+    updatePaginationControls(); // Atualiza os botões de navegação
+  } catch (error) {
+    console.error('Erro ao buscar materiais:', error);
+    showErrorRow('Erro ao carregar materiais. Tente novamente mais tarde.');
+  }
 }
+
+// Renderizar a tabela
+function renderTable(filteredMaterials = listaDeMateriais) {
+  const tableBody = document.getElementById('materiaisTableBody');
+  tableBody.innerHTML = '';
+
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = Math.min(start + itemsPerPage, filteredMaterials.length);
+  const currentItems = filteredMaterials.slice(start, end);
+
+  if (currentItems.length === 0) {
+    showErrorRow('Nenhum material encontrado.');
+    return;
+  }
+
+  currentItems.forEach(item => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td class="text-start">${item.id}</td>
+      <td class="text-start">${item.nome}</td>
+      <td class="text-start">${item.unidade_de_medida}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-primary me-2" onclick="editarMaterial(${item.id}, '${item.nome}', '${item.unidade_de_medida}')">
+          <i class="bi bi-pencil-square"></i> Editar
+        </button>
+        <button class="btn btn-sm btn-outline-danger" onclick="showDeleteModal(${item.id})">
+          <i class="bi bi-trash"></i> Excluir
+        </button>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+// Aplica o filtro atual
+function aplicarFiltro() {
+  if (filtroAtual) {
+    const idBuscado = parseInt(filtroAtual, 10);
+    if (!isNaN(idBuscado)) {
+      const materialFiltrado = listaDeMateriais.filter(material => material.id === idBuscado);
+      renderTable(materialFiltrado);
+    } else {
+      renderTable([]); // Mostra tabela vazia se o ID não for numérico
+    }
+  } else {
+    renderTable(); // Mostra todos os materiais se o campo estiver vazio
+  }
+}
+
+// Atualizar botões de paginação
+function updatePaginationControls() {
+  const totalPages = Math.ceil(listaDeMateriais.length / itemsPerPage);
+  document.getElementById('prevPage').disabled = currentPage === 1;
+  document.getElementById('nextPage').disabled = currentPage === totalPages;
+  document.getElementById('currentPage').textContent = `Página ${currentPage} de ${totalPages}`;
+}
+
+// Filtro ao digitar na barra de pesquisa
+document.getElementById('filtroMaterialId').addEventListener('input', event => {
+  filtroAtual = event.target.value.trim(); // Atualiza o valor do filtro
+  aplicarFiltro();
+});
+
+// Botão para limpar o campo de pesquisa
+document.getElementById('btnLimparFiltro').addEventListener('click', () => {
+  filtroAtual = ''; // Limpa o filtro atual
+  document.getElementById('filtroMaterialId').value = '';
+  aplicarFiltro(); // Recarrega a tabela completa
+});
+
+// Navegação entre páginas
+document.getElementById('prevPage').addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
+    aplicarFiltro(); // Aplica o filtro na página atual
+    updatePaginationControls();
+
+    // Desloca a página para o topo
+    window.scrollTo({
+      top: 0, // Vai para o topo da página
+      behavior: 'smooth' // Animação suave
+    });
+  }
+});
+
+document.getElementById('nextPage').addEventListener('click', () => {
+  const totalPages = Math.ceil(listaDeMateriais.length / itemsPerPage);
+  if (currentPage < totalPages) {
+    currentPage++;
+    aplicarFiltro(); // Aplica o filtro na página atual
+    updatePaginationControls();
+    
+    // Desloca a página para o topo
+    window.scrollTo({
+      top: 0, // Vai para o topo da página
+      behavior: 'smooth' // Animação suave
+    });
+  }
+});
+
+
+// Inicialização da tabela
+document.addEventListener('DOMContentLoaded', () => {
+  buscarMateriais();
+});
+
+
+
+
 
 function abrirModalAdicionarMaterial() {
   const modalHTML = `

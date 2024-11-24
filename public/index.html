@@ -49,12 +49,28 @@
 
 
 <!-- Materiais Section -->
-<section id="materiais" class="content-section">
-  <h2 class="text-primary fw-bold mb-4">Materiais</h2>
-  <button class="btn btn-primary mb-4 d-flex align-items-center" onclick="abrirModalAdicionarMaterial()">
-    <i class="bi bi-plus-circle me-2"></i>Adicionar Material
-  </button>
-  <div class="table-responsive shadow-sm rounded-3 overflow-hidden bg-white border">
+<section id="materiais" class="content-section p-4">
+  <h2 class="text-primary fw-bold mb-4 text-center">Materiais</h2>
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <button class="btn btn-primary d-flex align-items-center" onclick="abrirModalAdicionarMaterial()">
+      <i class="bi bi-plus-circle me-2"></i>Adicionar Material
+    </button>
+    <div class="d-flex">
+      <input
+        type="text"
+        id="filtroMaterialId"
+        class="form-control me-2"
+        placeholder="Filtrar por ID do material"
+        aria-label="Filtro de Material"
+      />
+      <button id="btnLimparFiltro" class="btn btn-outline-secondary">
+        <i class="bi bi-x-circle"></i> Limpar
+      </button>
+    </div>
+  </div>
+  
+  <div class="table-responsive shadow rounded-3 bg-white border">
     <table class="table table-hover table-striped align-middle mb-0">
       <thead class="table-light text-secondary fw-bold">
         <tr>
@@ -69,7 +85,18 @@
       </tbody>
     </table>
   </div>
+  
+  <div id="paginationControls" class="d-flex justify-content-between align-items-center mt-4">
+    <button class="btn btn-outline-primary" id="prevPage" disabled>
+      <i class="bi bi-chevron-left"></i> Anterior
+    </button>
+    <span id="currentPage" class="text-secondary"></span>
+    <button class="btn btn-outline-primary" id="nextPage" disabled>
+      Próxima <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
 </section>
+
 
 
 
