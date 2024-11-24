@@ -24,12 +24,12 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-              <a class="nav-link active fw-semibold d-flex align-items-center" href="#" onclick="showSection('materiais', this)">
+              <a class="nav-link fw-semibold d-flex align-items-center" href="#" onclick="showSection('materiais', this)">
                   <i class="fas fa-screwdriver me-2"></i> Materiais
               </a>
           </li>
           <li class="nav-item">
-              <a class="nav-link fw-semibold d-flex align-items-center" href="#" onclick="showSection('estruturas', this)">
+              <a class="nav-link active fw-semibold d-flex align-items-center" href="#" onclick="showSection('estruturas', this)">
                   <i class="fas fa-broadcast-tower me-2"></i> Estruturas
               </a>
           </li>
@@ -68,62 +68,6 @@
     </table>
   </div>
 </section>
-
-<!-- Modal para Adicionar Material -->
-<div class="modal fade" id="addMaterialModal" tabindex="-1" aria-labelledby="addMaterialLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addMaterialLabel">Adicionar Material</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="addMaterialForm">
-          <div class="mb-3">
-            <label for="nomeMaterial" class="form-label">Nome do Material</label>
-            <input type="text" class="form-control" id="nomeMaterial" placeholder="Digite o nome do material" required>
-          </div>
-          <div class="mb-3">
-            <label for="unidadeMaterial" class="form-label">Unidade de Medida</label>
-            <input type="text" class="form-control" id="unidadeMaterial" placeholder="Exemplo: kg, m, pcs" required>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="adicionarMaterial()">Salvar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal para Editar Material -->
-<div class="modal fade" id="editMaterialModal" tabindex="-1" aria-labelledby="editMaterialLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="editMaterialLabel">Editar Material</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="editMaterialForm">
-          <div class="mb-3">
-            <label for="editNomeMaterial" class="form-label">Nome do Material</label>
-            <input type="text" class="form-control" id="editNomeMaterial" required>
-          </div>
-          <div class="mb-3">
-            <label for="editUnidadeMaterial" class="form-label">Unidade de Medida</label>
-            <input type="text" class="form-control" id="editUnidadeMaterial" required>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="salvarEdicaoMaterial()">Salvar</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -184,7 +128,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-primary" onclick="adicionarEstrutura()">Salvar</button>
+            <button type="button" class="btn btn-primary" onclick="adicionarEstrutura()">Adicionar</button>
           </div>
         </div>
       </div>
@@ -208,27 +152,31 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-primary" onclick="salvarEdicaoEstrutura()">Salvar</button>
+            <button type="button" class="btn btn-primary" onclick="salvarEdicaoEstrutura()">Atualizar</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Alert Container -->
-  <div id="alertContainer" class="position-fixed top-0 start-50 translate-middle-x mt-3"
-    style="z-index: 9999; display: none;">
-    <div id="alertBox" class="alert alert-info alert-dismissible fade show" role="alert">
-      <span id="alertMessage">Mensagem padrão</span>
-      <div id="progressBar" style="height: 4px; background-color: rgba(0, 0, 0, 0.1); width: 0%;"></div>
-    </div>
+<!-- Alert Container -->
+<div id="alertContainer" class="position-fixed top-0 start-50 translate-middle-x mt-3 p-3"
+  style="z-index: 9999; display: none; max-width: 80%; width: auto;">
+  <div id="alertBox" class="alert alert-info alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+    <span id="alertMessage">Mensagem padrão</span>
+    <div id="progressBar" style="height: 5px; background-color: rgba(0, 0, 0, 0.1); width: 0%; border-radius: 3px;"></div>
   </div>
+</div>
+
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
   <script src="js/menu.js"></script>
   <script src="js/estruturas.js"></script>
   <script src="js/materiais.js"></script>
+  <script src="js/vincular_materiais.js"></script>
   <script src="js/mensagem_personalizada.js"></script>
 
 </body>

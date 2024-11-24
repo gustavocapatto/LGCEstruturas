@@ -5,14 +5,15 @@ function showAlert(message, type = 'info', duration = 1500) {
   const progressBar = document.getElementById('progressBar');
 
   alertMessage.textContent = message;
-  alertBox.className = `alert alert-${type} alert-dismissible fade show`;
+  alertBox.className = `alert alert-${type} fade show shadow-lg rounded`;
 
   alertContainer.style.display = 'block';
+  alertContainer.classList.add('animate__animated', 'animate__fadeInDown');
 
   // Animação da barra de progresso
   let startTime = Date.now();
   progressBar.style.width = '0%';
-  progressBar.style.backgroundColor = type === 'success' ? 'green' : type === 'danger' ? 'red' : 'blue';
+  progressBar.style.backgroundColor = type === 'success' ? '#28a745' : type === 'danger' ? '#dc3545' : '#007bff';
 
   const interval = setInterval(() => {
     const elapsed = Date.now() - startTime;
@@ -21,9 +22,8 @@ function showAlert(message, type = 'info', duration = 1500) {
 
     if (elapsed >= duration) {
       clearInterval(interval);
-      alertContainer.style.display = 'none';
+      alertContainer.classList.add('animate__fadeOutUp');
+      setTimeout(() => alertContainer.style.display = 'none', 500); // Espera o tempo da animação
     }
   }, 50); // Atualização a cada 50ms
 }
-
-  
