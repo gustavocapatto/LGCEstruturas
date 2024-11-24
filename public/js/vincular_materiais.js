@@ -1,13 +1,17 @@
 // Função para vincular materiais à estrutura
 function vincularMateriais(estruturaId, estruturaNome) {
-    
+    // Remover o modal existente, caso já exista
+    const existingModal = document.getElementById('vincularMateriaisModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
     // Criar o modal
     const modal = document.createElement('div');
     modal.classList.add('modal', 'fade');
     modal.id = 'vincularMateriaisModal';
     modal.tabIndex = -1;
     modal.setAttribute('aria-labelledby', 'vincularMateriaisModalLabel');
-    modal.setAttribute('aria-hidden', 'true');
 
     // Estrutura HTML do modal
     modal.innerHTML = `
@@ -21,14 +25,21 @@ function vincularMateriais(estruturaId, estruturaNome) {
                 <!-- Botão para adicionar nova linha -->
                 <button type="button" class="btn btn-outline-warning" id="addRowBtn">Adicionar Linha</button>
 
+                <!-- Spinner de carregamento -->
+                <div id="loadingSpinner" class="d-flex justify-content-center my-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+
                 <!-- Tabela de Materiais -->
-                <table class="table" id="materiaisTable">
+                <table class="table" id="materiaisTable" style="display: none;">
                     <thead>
                         <tr>
-                            <th scope="col" class="col-2">ID</th> <!-- Coluna ID menor -->
-                            <th scope="col" class="col-6">Nome</th> <!-- Coluna Nome maior -->
-                            <th scope="col" class="col-2">Quantidade</th> <!-- Coluna Quantidade menor -->
-                            <th scope="col" class="col-2">Ação</th> <!-- Coluna para remover -->
+                            <th scope="col" class="col-2">ID</th>
+                            <th scope="col" class="col-6">Nome</th>
+                            <th scope="col" class="col-2">Quant.</th>
+                            <th scope="col" class="col-2"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -59,11 +70,16 @@ function vincularMateriais(estruturaId, estruturaNome) {
 
         // Adiciona células (ID, Nome, Quantidade, Ação)
         row.innerHTML = `
-            <td><input type="text" class="form-control material-id" placeholder="ID"></td>
-            <td><input type="text" class="form-control material-name" placeholder="Nome" readonly></td>
-            <td><input type="number" class="form-control material-quantity" placeholder="Quantidade"></td>
-            <td><button type="button" class="btn btn-danger removeRowBtn">Remover</button></td>
-        `;
+    <td><input type="text" class="form-control material-id" placeholder="ID"></td>
+    <td><input type="text" class="form-control material-name" placeholder="Nome" readonly></td>
+    <td><input type="number" class="form-control material-quantity" placeholder="Quantidade"></td>
+    <td>
+        <button type="button" class="btn btn-outline-danger btn-sm removeRowBtn" title="Remover">
+            <i class="bi bi-trash"></i> <!-- Ícone de lixeira -->
+        </button>
+    </td>
+`;
+
 
         // Adiciona a nova linha à tabela
         tableBody.appendChild(row);
@@ -123,76 +139,150 @@ function vincularMateriais(estruturaId, estruturaNome) {
     // Adicionar o evento ao botão de adicionar linha
     document.getElementById('addRowBtn').addEventListener('click', addRow);
 
-    // Evento para adicionar uma nova linha ao pressionar Enter
-    document.getElementById('materiaisTable').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            // Impede o envio do formulário (se houver)
-            event.preventDefault();
-            // Adiciona uma nova linha
-            addRow();
+    // Função para exibir os materiais já existentes na estrutura
+    function exibirMateriaisExistentes(materiais) {
+        const tableBody = document.querySelector('#materiaisTable tbody');
+
+        materiais.forEach(material => {
+            // Criação de uma nova linha
+            const row = document.createElement('tr');
+            row.innerHTML = `
+            <td><input type="text" class="form-control material-id" value="${material.material_id}" readonly></td>
+            <td><input type="text" class="form-control material-name" value="${material.material_nome}" readonly></td>
+            <td><input type="number" class="form-control material-quantity" value="${material.quantidade}"></td>
+            <td>
+                <button type="button" class="btn btn-outline-danger btn-sm removeRowBtn" title="Remover">
+                    <i class="bi bi-trash"></i> <!-- Ícone de lixeira -->
+                </button>
+            </td>
+        `;
+        
+            tableBody.appendChild(row);
+
+            // Evento de clique no botão Remover
+            const removeButton = row.querySelector('.removeRowBtn');
+            removeButton.addEventListener('click', function() {
+                row.remove(); // Remove a linha da tabela
+            });
+        });
+    }
+
+    // Chamar a API para obter os materiais vinculados à estrutura
+    fetch(`/buscar_materiais_estrutura`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ estruturaId: estruturaId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Remover o spinner de carregamento
+        document.getElementById('loadingSpinner').remove();
+
+        if (data.success) {
+            // Exibir os materiais já existentes na tabela
+            exibirMateriaisExistentes(data.materiais);
+            // Mostrar a tabela
+            document.querySelector('#materiaisTable').style.display = 'table';
+        } else {
+            showAlert('Erro ao buscar materiais.', 'danger');
         }
+    })
+    .catch(error => {
+        console.error('Erro na requisição:', error);
+        showAlert('Erro ao tentar buscar os materiais.', 'danger');
+        // Remover o spinner de carregamento
+        document.getElementById('loadingSpinner').remove();
     });
 
-// Função para salvar e exibir os dados
-document.getElementById('saveBtn').addEventListener('click', function() {
-    const tableRows = document.querySelectorAll('#materiaisTable tbody tr');
-    let materiaisSelecionados = [];
-    let materiaisInexistentes = [];
+// Função para salvar os materiais
+function salvarMateriais() {
+    const tableBody = document.querySelector('#materiaisTable tbody');
+    const materiais = [];
+    let materialInexistente = false;  // Variável para verificar se há material inexistente
+    const materiaisIds = {};  // Para armazenar os IDs e suas quantidades
 
-    // Coletar todos os materiais e quantidades da tabela
-    tableRows.forEach(row => {
-        const idMaterial = row.querySelector('.material-id').value.trim();
-        const quantidade = row.querySelector('.material-quantity').value.trim();
-        const nomeMaterial = row.querySelector('.material-name').value.trim();
+    // Coletar todos os materiais da tabela
+    const rows = tableBody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const idInput = row.querySelector('.material-id');
+        const nameInput = row.querySelector('.material-name');
+        const quantityInput = row.querySelector('.material-quantity');
+        const materialId = idInput.value.trim();
+        const quantity = parseFloat(quantityInput.value.trim());
 
-        // Verifica se o material existe
-        if (idMaterial && quantidade) {
-            // Se o material não foi encontrado (o nome está 'Material inexistente')
-            if (nomeMaterial === 'Material inexistente') {
-                materiaisInexistentes.push(idMaterial); // Armazena o ID do material inexistente
+        // Verificar se o material é inexistente
+        if (nameInput.value === 'Material inexistente') {
+            materialInexistente = true;  // Marcar que existe material inexistente
+        }
+
+        // Verificar se o ID já foi adicionado
+        if (materialId && quantity && !isNaN(quantity) && quantity > 0 && nameInput.value !== 'Material inexistente') {
+            if (materiaisIds[materialId]) {
+                // Se o material já existir, somamos a quantidade
+                materiaisIds[materialId] += quantity;
             } else {
-                materiaisSelecionados.push({ id: idMaterial, quantidade: quantidade });
+                // Caso contrário, adicionamos o material à lista
+                materiaisIds[materialId] = quantity;
             }
         }
     });
 
-    // Se houver materiais inexistentes, exibe um alerta e impede o salvamento
-    if (materiaisInexistentes.length > 0) {
-        alert(`Não foi possível salvar. Os seguintes materiais não foram encontrados: ${materiaisInexistentes.join(', ')}`);
-        return; // Interrompe o salvamento
+    // Verificar se existe algum material inexistente
+    if (materialInexistente) {
+        showAlert('Por favor, verifique a lista, existem materiais inexistentes.', 'danger');
+        return;  // Impede o envio dos dados
     }
 
-    // Exibir os dados selecionados se tudo estiver correto
-    alert(`Estrutura ID: ${estruturaId} - Nome: ${estruturaNome}\n\nMateriais Vinculados:\n` +
-          materiaisSelecionados.map(material => `ID: ${material.id}, Quantidade: ${material.quantidade}`).join('\n'));
+    // Converter o objeto materiaisIds para o formato desejado
+    for (const materialId in materiaisIds) {
+        materiais.push({
+            id: materialId,
+            quantidade: materiaisIds[materialId]
+        });
+    }
 
-    // Enviar os dados para o servidor
+    // Alterar o botão para "Salvando..." com o spinner
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;  // Desabilitar o botão enquanto está salvando
+    saveBtn.innerHTML = 'Salvando... <div class="spinner-border spinner-border-sm text-light" role="status"><span class="visually-hidden">Carregando...</span></div>';
+
+    // Enviar os materiais para o servidor para salvar ou atualizar
     fetch('/salvar_materiais_estrutura', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({
             estruturaId: estruturaId,
-            materiais: materiaisSelecionados
+            materiais: materiais
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Materiais vinculados com sucesso!');
-            // Fechar o modal ou fazer outras ações após o sucesso
+            showAlert('Materiais vinculados com sucesso.', 'success');
+            bootstrapModal.hide(); // Fechar o modal
         } else {
-            alert('Erro ao vincular materiais. Tente novamente.');
+            showAlert('Erro ao salvar os materiais', 'danger');
         }
     })
     .catch(error => {
-        console.error('Erro ao salvar os materiais:', error);
-        alert('Erro ao salvar os materiais. Tente novamente.');
+        console.error('Erro na requisição:', error);
+        showAlert('Erro ao tentar salvar os materiais.', 'danger');
+    })
+    .finally(() => {
+        // Restaurar o botão depois de salvar
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = 'Salvar';  // Restaurar o texto do botão
     });
-});
+}
 
 
+
+    // Adicionar evento de clique no botão de salvar
+    document.getElementById('saveBtn').addEventListener('click', salvarMateriais);
 
     // Exibir o modal
     bootstrapModal.show();

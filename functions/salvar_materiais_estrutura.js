@@ -1,69 +1,75 @@
+// Importando a função de conexão do dbConfig
 const { getConnection } = require('./dbConfig');
 
-exports.handler = async (event, context) => {
+// Função que será chamada ao tentar salvar os materiais
+exports.handler = async (event) => {
+    const { estruturaId, materiais } = JSON.parse(event.body); // Dados enviados na requisição
+
+    let connection;
+
     try {
-        const connection = await getConnection();
+        // Obtém a conexão com o banco de dados
+        connection = await getConnection();
 
-        // Extrair os dados enviados no corpo da requisição (body)
-        const { estruturaId, materiais } = JSON.parse(event.body);
-
-        // Verificar se os materiais foram recebidos
-        if (!materiais || materiais.length === 0) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'Nenhum material foi enviado para vinculação' }),
-            };
-        }
-
-        // Verificar se o ID da estrutura foi fornecido
-        if (!estruturaId) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'ID da estrutura é necessário' }),
-            };
-        }
-
-        // Preparar as queries de inserção
-        const insertQuery = 'INSERT INTO materiais_estrutura (estrutura_id, material_id, quantidade) VALUES (?, ?, ?)';
-
-        // Usar uma transação para garantir a consistência dos dados
-        await connection.beginTransaction();
-
+        // AQUI VAI A LÓGICA PARA SALVAR, ATUALIZAR E REMOVER MATERIAIS
         for (const material of materiais) {
             const { id, quantidade } = material;
 
-            // Verificar se o material existe
-            const [materialCheck] = await connection.execute('SELECT * FROM materiais WHERE id = ?', [id]);
+            // Verifica se o material já está vinculado à estrutura
+            const [rows] = await connection.execute(
+                'SELECT * FROM materiais_estrutura WHERE estrutura_id = ? AND material_id = ?',
+                [estruturaId, id]
+            );
 
-            if (materialCheck.length === 0) {
-                // Material não encontrado
-                await connection.rollback(); // Desfaz a transação
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify({ error: `Material com ID ${id} não encontrado` }),
-                };
+            if (rows.length > 0) {
+                // Material já vinculado, atualiza a quantidade
+                await connection.execute(
+                    'UPDATE materiais_estrutura SET quantidade = ? WHERE estrutura_id = ? AND material_id = ?',
+                    [quantidade, estruturaId, id]
+                );
+            } else {
+                // Se não está vinculado, adiciona o material
+                await connection.execute(
+                    'INSERT INTO materiais_estrutura (estrutura_id, material_id, quantidade) VALUES (?, ?, ?)',
+                    [estruturaId, id, quantidade]
+                );
             }
-
-            // Inserir material na tabela materiais_estrutura
-            await connection.execute(insertQuery, [estruturaId, id, quantidade]);
         }
 
-        // Commitar a transação se todos os materiais forem válidos
-        await connection.commit();
+        // Verifica se existem IDs de materiais para remover
+        const idsExistentes = materiais.map(material => material.id);
 
-        // Finalizar a conexão
-        await connection.end();
+        if (idsExistentes.length > 0) {
+            // Caso haja materiais, cria uma string de placeholders para o IN
+            const placeholders = idsExistentes.map(() => '?').join(', ');
 
-        // Resposta de sucesso
+            // Passa os parâmetros de estruturaId e os IDs materiais para o DELETE
+            await connection.execute(
+                `DELETE FROM materiais_estrutura WHERE estrutura_id = ? AND material_id NOT IN (${placeholders})`,
+                [estruturaId, ...idsExistentes]  // Passa estruturaId + os IDs materiais
+            );
+        } else {
+            // Caso a lista de materiais esteja vazia, remove todos os materiais vinculados à estrutura
+            await connection.execute(
+                'DELETE FROM materiais_estrutura WHERE estrutura_id = ?',
+                [estruturaId]  // Deleta todos os materiais vinculados à estrutura
+            );
+        }
+
         return {
             statusCode: 200,
-            body: JSON.stringify({ success: true, message: 'Materiais vinculados com sucesso!' }),
+            body: JSON.stringify({ success: true, message: 'Materiais salvos com sucesso!' })
         };
     } catch (err) {
-        // Em caso de erro, faz rollback e retorna o erro
+        console.error('Erro ao salvar materiais:', err);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Erro ao salvar os materiais', details: err.message }),
+            body: JSON.stringify({ success: false, message: 'Erro ao salvar materiais' })
         };
+    } finally {
+        // Fecha a conexão após o uso (importante para evitar vazamento de recursos)
+        if (connection) {
+            await connection.end();
+        }
     }
 };

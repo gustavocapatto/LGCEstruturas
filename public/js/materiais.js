@@ -9,7 +9,7 @@ function buscarMateriais() {
     .then(data => {
       const tableBody = document.getElementById('materiaisTableBody');
       tableBody.innerHTML = ''; // Limpa o conteúdo atual da tabela
-
+      listaDeMateriais = data;
       if (data.length === 0) {
         // Exibe uma mensagem quando não há dados
         const emptyRow = document.createElement('tr');
