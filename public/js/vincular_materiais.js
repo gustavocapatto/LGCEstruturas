@@ -139,26 +139,33 @@ function vincularMateriais(estruturaId, estruturaNome) {
     // Adicionar o evento ao botão de adicionar linha
     document.getElementById('addRowBtn').addEventListener('click', addRow);
 
-    // Função para exibir os materiais já existentes na estrutura
     function exibirMateriaisExistentes(materiais) {
         const tableBody = document.querySelector('#materiaisTable tbody');
-
+    
         materiais.forEach(material => {
+            // Função para escapar caracteres especiais
+            const escapeHTML = (str) => String(str).replace(/&/g, "&amp;")
+                                      .replace(/</g, "&lt;")
+                                      .replace(/>/g, "&gt;")
+                                      .replace(/"/g, "&quot;")
+                                      .replace(/'/g, "&#039;");
+
+    
             // Criação de uma nova linha
             const row = document.createElement('tr');
             row.innerHTML = `
-            <td><input type="text" class="form-control material-id" value="${material.material_id}" readonly></td>
-            <td><input type="text" class="form-control material-name" value="${material.material_nome}" readonly></td>
-            <td><input type="number" class="form-control material-quantity" value="${material.quantidade}"></td>
-            <td>
-                <button type="button" class="btn btn-outline-danger btn-sm removeRowBtn" title="Remover">
-                    <i class="bi bi-trash"></i> <!-- Ícone de lixeira -->
-                </button>
-            </td>
-        `;
-        
+                <td><input type="text" class="form-control material-id" value="${escapeHTML(material.material_id)}" readonly></td>
+                <td><input type="text" class="form-control material-name" value="${escapeHTML(material.material_nome)}" readonly></td>
+                <td><input type="number" class="form-control material-quantity" value="${material.quantidade}"></td>
+                <td>
+                    <button type="button" class="btn btn-outline-danger btn-sm removeRowBtn" title="Remover">
+                        <i class="bi bi-trash"></i> <!-- Ícone de lixeira -->
+                    </button>
+                </td>
+            `;
+    
             tableBody.appendChild(row);
-
+    
             // Evento de clique no botão Remover
             const removeButton = row.querySelector('.removeRowBtn');
             removeButton.addEventListener('click', function() {
@@ -166,6 +173,7 @@ function vincularMateriais(estruturaId, estruturaNome) {
             });
         });
     }
+    
 
     // Chamar a API para obter os materiais vinculados à estrutura
     fetch(`/buscar_materiais_estrutura`, {
