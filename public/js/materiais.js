@@ -51,20 +51,30 @@ function renderTable(filteredMaterials = listaDeMateriais) {
   });
 }
 
-// Aplica o filtro atual
+// Aplica o filtro atual (ID ou nome)
 function aplicarFiltro() {
-  if (filtroAtual) {
-    const idBuscado = parseInt(filtroAtual, 10);
+  const filtro = filtroAtual.toLowerCase(); // Converte o filtro para minúsculas para busca insensível a maiúsculas/minúsculas
+  let materiaisFiltrados;
+
+  if (filtro) {
+    const idBuscado = parseInt(filtro, 10);
     if (!isNaN(idBuscado)) {
-      const materialFiltrado = listaDeMateriais.filter(material => material.id === idBuscado);
-      renderTable(materialFiltrado);
+      // Filtra por ID se o filtro for numérico
+      materiaisFiltrados = listaDeMateriais.filter(material => material.id === idBuscado);
     } else {
-      renderTable([]); // Mostra tabela vazia se o ID não for numérico
+      // Filtra por nome se o filtro não for numérico
+      materiaisFiltrados = listaDeMateriais.filter(material =>
+        material.nome.toLowerCase().includes(filtro)
+      );
     }
   } else {
-    renderTable(); // Mostra todos os materiais se o campo estiver vazio
+    // Se não houver filtro, mostra todos os materiais
+    materiaisFiltrados = listaDeMateriais;
   }
+
+  renderTable(materiaisFiltrados); // Renderiza a tabela com os materiais filtrados
 }
+
 
 // Atualizar botões de paginação
 function updatePaginationControls() {
