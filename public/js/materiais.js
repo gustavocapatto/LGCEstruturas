@@ -118,14 +118,6 @@ document.getElementById('nextPage').addEventListener('click', () => {
 });
 
 
-// Inicialização da tabela
-document.addEventListener('DOMContentLoaded', () => {
-  buscarMateriais();
-});
-
-
-
-
 
 function abrirModalAdicionarMaterial() {
   const modalHTML = `
@@ -145,6 +137,50 @@ function abrirModalAdicionarMaterial() {
                 <div class="mb-3">
                   <label class="form-label d-block">Unidade de Medida</label>
                   <div class="d-flex align-items-center gap-3">
+                  <div class="form-check form-check-inline">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="unidadeMedida" 
+                        id="unidadeCx" 
+                        value="Cx" 
+                        required
+                      >
+                      <label class="form-check-label" for="unidadeCx">Cx</label>
+                    </div>
+                     <div class="form-check form-check-inline">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="unidadeMedida" 
+                        id="unidadePc" 
+                        value="Pc" 
+                        required
+                      >
+                      <label class="form-check-label" for="unidadePc">Pc</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="unidadeMedida" 
+                        id="unidadePt" 
+                        value="Pt" 
+                        required
+                      >
+                      <label class="form-check-label" for="unidadePt">Pt</label>
+                    </div>
+                     <div class="form-check form-check-inline">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="unidadeMedida" 
+                        id="unidadeUn" 
+                        value="Un" 
+                        required
+                      >
+                      <label class="form-check-label" for="unidadeUn">Un</label>
+                    </div>
                     <div class="form-check form-check-inline">
                       <input 
                         class="form-check-input" 
@@ -152,30 +188,10 @@ function abrirModalAdicionarMaterial() {
                         name="unidadeMedida" 
                         id="unidadeKG" 
                         value="KG" 
-                        required
                       >
                       <label class="form-check-label" for="unidadeKG">KG</label>
                     </div>
-                    <div class="form-check form-check-inline">
-                      <input 
-                        class="form-check-input" 
-                        type="radio" 
-                        name="unidadeMedida" 
-                        id="unidadeUNI" 
-                        value="UNI"
-                      >
-                      <label class="form-check-label" for="unidadeUNI">UNI</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                      <input 
-                        class="form-check-input" 
-                        type="radio" 
-                        name="unidadeMedida" 
-                        id="unidadePC" 
-                        value="PÇ"
-                      >
-                      <label class="form-check-label" for="unidadePC">PÇ</label>
-                    </div>
+                  
                   </div>
                 </div>
               </form>
@@ -293,28 +309,17 @@ function editarMaterial(id, nome, unidadeMedida) {
               <div class="mb-3">
                 <label class="form-label d-block">Unidade de Medida</label>
                 <div class="d-flex align-items-center gap-3">
-                  <div class="form-check form-check-inline">
+                <div class="form-check form-check-inline">
                     <input 
                       class="form-check-input" 
                       type="radio" 
                       name="editarUnidadeMedida" 
-                      id="editarUnidadeKG" 
-                      value="KG" 
-                      ${unidadeMedida === "KG" ? "checked" : ""}
+                      id="editarUnidadeCX" 
+                      value="CX" 
+                      ${unidadeMedida === "CX" ? "checked" : ""}
                       required
                     >
-                    <label class="form-check-label" for="editarUnidadeKG">KG</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input 
-                      class="form-check-input" 
-                      type="radio" 
-                      name="editarUnidadeMedida" 
-                      id="editarUnidadeUNI" 
-                      value="UNI" 
-                      ${unidadeMedida === "UNI" ? "checked" : ""}
-                    >
-                    <label class="form-check-label" for="editarUnidadeUNI">UNI</label>
+                    <label class="form-check-label" for="editarUnidadeCX">Cx</label>
                   </div>
                   <div class="form-check form-check-inline">
                     <input 
@@ -322,10 +327,47 @@ function editarMaterial(id, nome, unidadeMedida) {
                       type="radio" 
                       name="editarUnidadeMedida" 
                       id="editarUnidadePC" 
-                      value="PÇ" 
-                      ${unidadeMedida === "PÇ" ? "checked" : ""}
+                      value="PC" 
+                      ${unidadeMedida === "PC" ? "checked" : ""}
+                      required
                     >
-                    <label class="form-check-label" for="editarUnidadePC">PÇ</label>
+                    <label class="form-check-label" for="editarUnidadePC">Pc</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input 
+                      class="form-check-input" 
+                      type="radio" 
+                      name="editarUnidadeMedida" 
+                      id="editarUnidadePt" 
+                      value="Pt" 
+                      ${unidadeMedida === "Pt" ? "checked" : ""}
+                      required
+                    >
+                    <label class="form-check-label" for="editarUnidadePt">Pt</label>
+                  </div>
+                   <div class="form-check form-check-inline">
+                    <input 
+                      class="form-check-input" 
+                      type="radio" 
+                      name="editarUnidadeMedida" 
+                      id="editarUnidadeUn" 
+                      value="Un" 
+                      ${unidadeMedida === "Un" ? "checked" : ""}
+                      required
+                    >
+                    <label class="form-check-label" for="editarUnidadeUn">Un</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input 
+                      class="form-check-input" 
+                      type="radio" 
+                      name="editarUnidadeMedida" 
+                      id="editarUnidadekg" 
+                      value="kg" 
+                      ${unidadeMedida === "kg" ? "checked" : ""}
+                      required
+                    >
+                    <label class="form-check-label" for="editarUnidadekg">Kg</label>
                   </div>
                 </div>
               </div>
