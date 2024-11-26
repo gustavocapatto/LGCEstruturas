@@ -15,7 +15,7 @@ function vincularMateriaisEstrutura(estruturaId, estruturaNome) {
 
     // Estrutura HTML do modal
     modal.innerHTML = `
-    <div class="modal-dialog modal-lg">
+<div class="modal-dialog modal-dialog-start modal-dialog-scrollable w-100 mw-100 mx-auto p-3">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="vincularMateriaisModalLabel">Vincular Materiais à Estrutura: ${estruturaNome}</h5>
