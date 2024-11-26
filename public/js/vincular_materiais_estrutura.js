@@ -1,5 +1,5 @@
 // Função para vincular materiais à estrutura
-function vincularMateriais(estruturaId, estruturaNome) {
+function vincularMateriaisEstrutura(estruturaId, estruturaNome) {
     // Remover o modal existente, caso já exista
     const existingModal = document.getElementById('vincularMateriaisModal');
     if (existingModal) {

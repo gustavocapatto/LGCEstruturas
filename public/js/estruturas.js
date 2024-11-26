@@ -32,7 +32,7 @@ function buscarEstruturas() {
           <td class="text-start">${item.id}</td>
           <td class="text-end">${item.nome}</td>
           <td class="text-end">
-          <button class="btn btn-sm btn-outline-warning me-2" onclick="vincularMateriais(${item.id}, '${item.nome}')">
+          <button class="btn btn-sm btn-outline-warning me-2" onclick="vincularMateriaisEstrutura(${item.id}, '${item.nome}')">
               <i class="bi bi-pencil-square"></i> Vincular Materiais
             </button>
             <button class="btn btn-sm btn-outline-primary me-2" onclick="editarEstrutura(${item.id}, '${item.nome}')">

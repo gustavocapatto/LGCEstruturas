@@ -26,6 +26,11 @@ function showSection(sectionId, menuItem) {
     } else if (sectionId === 'materiais') {
         buscarMateriais();
     }*/
+
+        
+    if (sectionId === 'postes') {
+        buscarPostes();
+    }
   
     // Fechar o menu hambúrguer quando o item for selecionado no celular
     const menuToggle = document.getElementById('navbarNav'); // Supondo que o menu tenha o ID 'navbarNav'
