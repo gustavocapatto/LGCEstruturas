@@ -27,13 +27,13 @@ function renderizarTabelaPostes() {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td class="text-start">${poste.id}</td>
-      <td class="text-end">${poste.nome}</td>
-      <td class="text-end">${poste.id_material || 'N/A'}</td>
+      <td class="text-end">${poste.id_material}</td>
+      <td class="text-end">${poste.nome || 'N/A'}</td>
       <td class="text-end">
         <button class="btn btn-sm btn-outline-warning me-2" onclick="vincularMateriaisPoste(${poste.id}, '${poste.nome}')">
           <i class="bi bi-pencil-square"></i> Vincular Materiais
         </button>
-        <button class="btn btn-sm btn-outline-primary me-2" onclick="editarPoste(${poste.id}, '${poste.nome}', '${poste.id_material || ''}')">
+        <button class="btn btn-sm btn-outline-primary me-2" onclick="editarPoste(${poste.id}, '${poste.id_material || ''}')">
           <i class="bi bi-pencil-square"></i> Editar
         </button>
         <button class="btn btn-sm btn-outline-danger" onclick="excluirPoste(${poste.id})">
@@ -57,12 +57,12 @@ function abrirModalAdicionarPoste() {
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label for="descricaoPoste" class="form-label">Nome</label>
-              <input type="text" id="descricaoPoste" class="form-control" placeholder="Digite o nome do poste">
+              <label for="idMaterialPoste" class="form-label">Código do poste</label>
+              <input type="number" id="idMaterialPoste" class="form-control" placeholder="Digite o ID do poste" oninput="buscarMaterialPorId()">
             </div>
             <div class="mb-3">
-              <label for="idMaterialPoste" class="form-label">Código do poste</label>
-              <input type="number" id="idMaterialPoste" class="form-control" placeholder="Digite o ID do poste">
+              <label for="descricaoPoste" class="form-label">Nome</label>
+              <input type="text" id="descricaoPoste" class="form-control" placeholder="Digite o nome do poste" disabled>
             </div>
           </div>
           <div class="modal-footer">
@@ -73,9 +73,43 @@ function abrirModalAdicionarPoste() {
       </div>
     </div>
   `;
+  
   document.body.insertAdjacentHTML('beforeend', modalHTML);
-  new bootstrap.Modal(document.getElementById('modalAdicionarPoste')).show();
+
+  const modalElement = document.getElementById('modalAdicionarPoste');
+  const modalInstance = new bootstrap.Modal(modalElement);
+
+  // Evento para limpar os campos ao fechar o modal
+  modalElement.addEventListener('hidden.bs.modal', () => {
+    document.getElementById('idMaterialPoste').value = '';
+    document.getElementById('descricaoPoste').value = '';
+    document.getElementById('idMaterialPoste').classList.remove('is-invalid');
+    document.getElementById('descricaoPoste').classList.remove('is-invalid');
+    modalElement.remove(); // Remove o modal do DOM
+  });
+
+  modalInstance.show();
 }
+
+
+function buscarMaterialPorId() {
+  const idInput = document.getElementById("idMaterialPoste");
+  const descricaoInput = document.getElementById("descricaoPoste");
+
+  // Busca o material com o ID correspondente
+  const material = listaDeMateriais.find(material => material.id == idInput.value);
+
+  if (material) {
+    descricaoInput.value = material.nome; // Preenche o campo com o nome
+    descricaoInput.classList.remove("is-invalid"); // Remove estilo de erro
+    idInput.classList.remove("is-invalid");
+  } else {
+    descricaoInput.value = "Material Inexistente"; // Mensagem de erro no campo Nome
+    descricaoInput.classList.add("is-invalid"); // Adiciona estilo de erro
+    idInput.classList.add("is-invalid");
+  }
+}
+
 
 async function adicionarPoste() {
   const nome = document.getElementById('descricaoPoste').value.trim();
@@ -118,12 +152,16 @@ async function adicionarPoste() {
   
   
 // Função para editar poste
-function editarPoste(id, descricao, idMaterial) {
+function editarPoste(id, idMaterial) {
   // Verifica se o modal já existe e remove
   const existingModal = document.getElementById('modalEditarPoste');
   if (existingModal) {
       existingModal.remove();  // Remove o modal anterior
   }
+
+  // Busca o material correspondente ao idMaterial
+  const material = listaDeMateriais.find(material => material.id == idMaterial);
+  const descricao = material ? material.nome : "Material Inexistente";
 
   // Cria o novo modal com o conteúdo atualizado
   const modalHTML = `
@@ -135,14 +173,15 @@ function editarPoste(id, descricao, idMaterial) {
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
+          <div class="mb-3">
+              <label for="editarMaterialPoste" class="form-label">Código do poste</label>
+              <input type="text" id="editarMaterialPoste" class="form-control" value="${idMaterial}" oninput="atualizarDescricaoMaterial()">
+            </div>
             <div class="mb-3">
               <label for="editarDescricaoPoste" class="form-label">Nome</label>
-              <input type="text" id="editarDescricaoPoste" class="form-control" value="${descricao}">
+              <input type="text" id="editarDescricaoPoste" class="form-control" value="${descricao}" disabled>
             </div>
-            <div class="mb-3">
-              <label for="editarMaterialPoste" class="form-label">Código do poste</label>
-              <input type="text" id="editarMaterialPoste" class="form-control" value="${idMaterial}">
-            </div>
+            
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -160,6 +199,25 @@ function editarPoste(id, descricao, idMaterial) {
   const modal = new bootstrap.Modal(document.getElementById('modalEditarPoste'));
   modal.show();
 }
+
+// Atualiza a descrição com base no ID do material
+function atualizarDescricaoMaterial() {
+  const idMaterialInput = document.getElementById("editarMaterialPoste");
+  const descricaoInput = document.getElementById("editarDescricaoPoste");
+
+  const material = listaDeMateriais.find(material => material.id == idMaterialInput.value);
+
+  if (material) {
+    descricaoInput.value = material.nome; // Atualiza o nome
+    descricaoInput.classList.remove("is-invalid"); // Remove estilo de erro
+    idMaterialInput.classList.remove("is-invalid");
+  } else {
+    descricaoInput.value = "Material Inexistente"; // Mensagem de erro no campo Nome
+    descricaoInput.classList.add("is-invalid"); // Adiciona estilo de erro
+    idMaterialInput.classList.add("is-invalid");
+  }
+}
+
 
 
 // Função para salvar alterações do poste

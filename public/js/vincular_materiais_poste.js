@@ -1,4 +1,3 @@
-// Função para vincular materiais ao poste
 function vincularMateriaisPoste(posteId, posteNome) {
     // Criação do modal dinamicamente
     const modal = document.createElement('div');
@@ -6,10 +5,9 @@ function vincularMateriaisPoste(posteId, posteNome) {
     modal.id = `vincularMateriaisModal_${posteId}`; // Adicionando o posteId ao ID do modal
     modal.tabIndex = -1;
     modal.setAttribute('aria-labelledby', `vincularMateriaisPosteModalLabel_${posteId}`);
-    modal.setAttribute('aria-hidden', 'true');
-  
+
     modal.innerHTML = `
-      <div class="modal-dialog modal-lg" style="max-width: 90%; width: auto;">
+ <div class="modal-dialog modal-dialog-start modal-dialog-scrollable w-100 mw-100 mx-auto p-3">
           <div class="modal-content">
               <div class="modal-header">
                   <h5 class="modal-title" id="vincularMateriaisPosteModalLabel_${posteId}">
@@ -19,19 +17,21 @@ function vincularMateriaisPoste(posteId, posteNome) {
               </div>
               <div class="modal-body">
                   <!-- Tabela de Materiais -->
-                  <table class="table" id="materiaisTable_${posteId}" style="display: none;">
-                      <thead>
-                          <tr>
-                              <th scope="col" class="col-2">ID</th>
-                              <th scope="col" class="col-6">Nome</th>
-                              <th scope="col" class="col-2">Quant.</th>
-                              <th scope="col" class="col-2"></th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          <!-- Linhas da tabela serão inseridas dinamicamente aqui -->
-                      </tbody>
-                  </table>
+                  <div class="table-responsive">
+                      <table class="table" id="materiaisTable_${posteId}" style="display: none;">
+                          <thead>
+                              <tr>
+                                  <th scope="col" class="col-2">ID</th>
+                                  <th scope="col" class="col-6">Nome</th>
+                                  <th scope="col" class="col-2">Quant.</th>
+                                  <th scope="col" class="col-2"></th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <!-- Linhas da tabela serão inseridas dinamicamente aqui -->
+                          </tbody>
+                      </table>
+                  </div>
               </div>
               <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
@@ -40,10 +40,10 @@ function vincularMateriaisPoste(posteId, posteNome) {
           </div>
       </div>
     `;
-  
+
     // Adiciona o modal ao corpo do documento
     document.body.appendChild(modal);
-  
+
     // Inicializa o modal com o Bootstrap
     const bootstrapModal = new bootstrap.Modal(modal);
     bootstrapModal.show();
