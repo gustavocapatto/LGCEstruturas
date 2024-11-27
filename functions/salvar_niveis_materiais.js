@@ -14,13 +14,6 @@ exports.handler = async (event, context) => {
             };
         }
 
-        if (!Array.isArray(niveis) || niveis.length === 0) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'O campo "niveis" deve ser uma lista e não pode estar vazio.' }),
-            };
-        }
-
         // Conexão com o banco de dados
         const connection = await getConnection();
 
