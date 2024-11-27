@@ -62,7 +62,7 @@ function abrirModalAdicionarPoste() {
             </div>
             <div class="mb-3">
               <label for="descricaoPoste" class="form-label">Nome</label>
-              <input type="text" id="descricaoPoste" class="form-control" placeholder="Digite o nome do poste" disabled>
+              <input type="text" id="descricaoPoste" class="form-control" placeholder="Digite o nome do poste">
             </div>
           </div>
           <div class="modal-footer">
@@ -179,7 +179,7 @@ function editarPoste(id, idMaterial) {
             </div>
             <div class="mb-3">
               <label for="editarDescricaoPoste" class="form-label">Nome</label>
-              <input type="text" id="editarDescricaoPoste" class="form-control" value="${descricao}" disabled>
+              <input type="text" id="editarDescricaoPoste" class="form-control" value="${descricao}">
             </div>
             
           </div>
