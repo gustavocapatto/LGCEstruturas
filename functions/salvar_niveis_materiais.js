@@ -23,43 +23,105 @@ exports.handler = async (event, context) => {
             [poste_id]
         );
 
-        // 2. Identificar os níveis a adicionar, atualizar ou remover
         const existingLevelsMap = new Map(existingLevels.map(level => [level.nome.trim(), level.id]));
 
         const niveisToAdd = [];
         const niveisToUpdate = [];
         const niveisToRemove = [];
+        const materialsPromises = [];
 
-        // Organize os dados de acordo com a necessidade de inserção, atualização e remoção
-        for (const { nivelId, nivelNome } of niveis) {
+        // Organizar os níveis para adicionar, atualizar ou remover
+        for (const { nivelId, nivelNome, materiais } of niveis) {
             const trimmedNivelNome = nivelNome.trim();
 
             if (!existingLevelsMap.has(trimmedNivelNome)) {
-                // Se o nome do nível não existe, devemos adicionar
-                niveisToAdd.push({ nivelNome: trimmedNivelNome });
+                // Se o nível não existe, devemos adicioná-lo
+                niveisToAdd.push({ nivelNome: trimmedNivelNome, materiais });
             } else {
-                // Se o nível existe, deve ser atualizado
+                // Se o nível existe, verificar atualizações ou processar materiais
                 const existingLevelId = existingLevelsMap.get(trimmedNivelNome);
-                if (nivelId && nivelId !== existingLevelId) {
-                    niveisToUpdate.push({ nivelId, nivelNome: trimmedNivelNome });
+
+                // Processar materiais para o nível existente
+                const [existingMaterials] = await connection.execute(
+                    'SELECT id, codigo, nome, quantidade FROM materiais_nivel WHERE nivel_id = ?',
+                    [existingLevelId]
+                );
+
+                const existingMaterialsMap = new Map(existingMaterials.map(material => [material.codigo.trim(), material]));
+
+                const materialsToAdd = [];
+                const materialsToUpdate = [];
+                const materialsToRemove = [];
+
+                for (const { materialId, codigo, nome, quantidade } of materiais) {
+                    const trimmedCodigo = codigo.trim();
+
+                    if (!existingMaterialsMap.has(trimmedCodigo)) {
+                        // Adicionar materiais novos
+                        materialsToAdd.push({ codigo: trimmedCodigo, nome, quantidade });
+                    } else {
+                        // Atualizar materiais existentes
+                        const existingMaterial = existingMaterialsMap.get(trimmedCodigo);
+                        if (
+                            materialId &&
+                            materialId !== existingMaterial.id &&
+                            (nome !== existingMaterial.nome || quantidade !== existingMaterial.quantidade)
+                        ) {
+                            // Aqui, verificamos se houve mudança no nome ou na quantidade
+                            materialsToUpdate.push({ materialId, codigo: trimmedCodigo, nome, quantidade });
+                        } else if (quantidade !== existingMaterial.quantidade) {
+                            // Se a quantidade mudou, atualizamos
+                            materialsToUpdate.push({ materialId: existingMaterial.id, codigo: trimmedCodigo, nome, quantidade });
+                        }
+                    }
+                }
+
+                // Identificar materiais para remoção
+                for (const { id, codigo } of existingMaterials) {
+                    if (!materiais.some(material => material.codigo.trim() === codigo.trim())) {
+                        materialsToRemove.push(id);
+                    }
+                }
+
+                // Gerar promessas para materiais
+                for (const { codigo, nome, quantidade } of materialsToAdd) {
+                    const insertQuery = 'INSERT INTO materiais_nivel (nivel_id, codigo, nome, quantidade) VALUES (?, ?, ?, ?)';
+                    materialsPromises.push(connection.execute(insertQuery, [existingLevelId, codigo, nome, quantidade]));
+                }
+
+                for (const { materialId, codigo, nome, quantidade } of materialsToUpdate) {
+                    const updateQuery = 'UPDATE materiais_nivel SET nome = ?, quantidade = ? WHERE id = ? AND nivel_id = ?';
+                    materialsPromises.push(connection.execute(updateQuery, [nome, quantidade, materialId, existingLevelId]));
+                }
+
+                if (materialsToRemove.length > 0) {
+                    const deleteQuery = `DELETE FROM materiais_nivel WHERE nivel_id = ? AND id IN (${materialsToRemove.join(', ')})`;
+                    materialsPromises.push(connection.execute(deleteQuery, [existingLevelId]));
                 }
             }
         }
 
-        // Verificar os níveis existentes que não estão na lista para remoção
+        // Identificar níveis para remoção
         for (const { id, nome } of existingLevels) {
             if (!niveis.some(nivel => nivel.nivelNome.trim() === nome.trim())) {
                 niveisToRemove.push(id);
             }
         }
 
-        // 3. Realizar inserções, atualizações e exclusões
+        // 3. Realizar operações no banco de dados
         const promises = [];
 
         // Inserir novos níveis
-        for (const { nivelNome } of niveisToAdd) {
+        for (const { nivelNome, materiais } of niveisToAdd) {
             const insertQuery = 'INSERT INTO niveis (poste_id, nome) VALUES (?, ?)';
-            promises.push(connection.execute(insertQuery, [poste_id, nivelNome]));
+            const [result] = await connection.execute(insertQuery, [poste_id, nivelNome]);
+            const newNivelId = result.insertId;
+
+            // Inserir materiais para os novos níveis
+            for (const { codigo, nome, quantidade } of materiais) {
+                const materialQuery = 'INSERT INTO materiais_nivel (nivel_id, codigo, nome, quantidade) VALUES (?, ?, ?, ?)';
+                promises.push(connection.execute(materialQuery, [newNivelId, codigo, nome, quantidade]));
+            }
         }
 
         // Atualizar níveis existentes
@@ -68,13 +130,16 @@ exports.handler = async (event, context) => {
             promises.push(connection.execute(updateQuery, [nivelNome, nivelId, poste_id]));
         }
 
-        // Remover níveis que não estão mais na lista
+        // Remover níveis
         if (niveisToRemove.length > 0) {
             const deleteQuery = `DELETE FROM niveis WHERE poste_id = ? AND id IN (${niveisToRemove.join(', ')})`;
             promises.push(connection.execute(deleteQuery, [poste_id]));
         }
 
-        // Executar todas as operações de inserção, atualização e exclusão
+        // Aguardar todas as operações de materiais
+        await Promise.all(materialsPromises);
+
+        // Aguardar todas as operações de níveis
         await Promise.all(promises);
 
         // Fechar a conexão
@@ -84,7 +149,7 @@ exports.handler = async (event, context) => {
         return {
             statusCode: 200,
             body: JSON.stringify({
-                message: 'Níveis modificados com sucesso!',
+                message: 'Níveis e materiais modificados com sucesso!',
                 niveisModificados: {
                     adicionados: niveisToAdd.map(level => level.nivelNome),
                     atualizados: niveisToUpdate.map(level => level.nivelNome),
@@ -97,7 +162,7 @@ exports.handler = async (event, context) => {
         return {
             statusCode: 500,
             body: JSON.stringify({
-                error: 'Erro ao modificar níveis',
+                error: 'Erro ao modificar níveis e materiais',
                 details: err.message,
             }),
         };

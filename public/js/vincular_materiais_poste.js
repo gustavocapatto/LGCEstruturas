@@ -59,11 +59,11 @@ modal.innerHTML = `
         }
     }
 
-    // Função que cria a tabela para um nível específico
-    function criarTabelaNivel(posteId, nivel = {}) {
-        const newTable = document.createElement('div');
-        newTable.classList.add('mb-4');
-        newTable.innerHTML = `
+// Função que cria a tabela para um nível específico
+function criarTabelaNivel(posteId, nivel = {}) {
+    const newTable = document.createElement('div');
+    newTable.classList.add('mb-4');
+    newTable.innerHTML = `
     <div class="card border-0 shadow-lg rounded-lg" data-nivel-id="${nivel.id || ''}">
         <div class="card-body p-4">
             <h5 class="card-title text-muted mb-3">Nível</h5>
@@ -123,55 +123,77 @@ modal.innerHTML = `
     </div>
 `;
 
-        // Lógica para remover o nível
-        const removeBtn = newTable.querySelector('.removeBtn');
-        removeBtn.addEventListener('click', () => newTable.remove());
+    // Lógica para remover o nível
+    const removeBtn = newTable.querySelector('.removeBtn');
+    removeBtn.addEventListener('click', () => newTable.remove());
 
-        // Lógica para adicionar materiais
-        const addMaterialBtn = newTable.querySelector('.addMaterialBtn');
-        addMaterialBtn.addEventListener('click', () => adicionarMaterial(newTable));
+    // Lógica para adicionar materiais
+    const addMaterialBtn = newTable.querySelector('.addMaterialBtn');
+    addMaterialBtn.addEventListener('click', () => adicionarMaterial(newTable));
 
-        return newTable;
-    }
-
-    // Função para adicionar material a um nível
-    function adicionarMaterial(newTable) {
-        const materialTable = newTable.querySelector('.table-bordered tbody');
-        const newMaterialRow = document.createElement('tr');
-        newMaterialRow.innerHTML = `
-            <td><input type="text" class="form-control form-control-sm materialCode" placeholder="Código"></td>
-            <td><input type="text" class="form-control form-control-sm materialName" placeholder="Nome" readonly></td>
-            <td><input type="number" class="form-control form-control-sm" placeholder="Quantidade"></td>
-            <td class="text-center">
-                <button type="button" class="btn btn-danger btn-sm rounded-circle removeMaterialBtn"><i class="bi bi-trash"></i></button>
-            </td>
-        `;
-        
-        // Lógica para buscar nome do material
-        const materialCodeInput = newMaterialRow.querySelector('.materialCode');
-        const materialNameInput = newMaterialRow.querySelector('.materialName');
-
-        materialCodeInput.addEventListener('input', () => {
-            const codigo = materialCodeInput.value.trim();
+    // Lógica para adicionar evento 'input' ao campo de código de material
+    const materialCodeInputs = newTable.querySelectorAll('.materialCode');
+    materialCodeInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            const codigo = input.value.trim();
+            // Busca o material na lista com base no código
             const material = listaDeMateriais.find(item => item.id.toString() === codigo);
 
+            const materialNameInput = input.closest('tr').querySelector('.materialName');
             if (material) {
                 materialNameInput.value = material.nome;
-                materialCodeInput.classList.remove('is-invalid');
+                input.classList.remove('is-invalid');
                 materialNameInput.classList.remove('is-invalid');
             } else {
                 materialNameInput.value = ''; // Limpa o nome se o material não for encontrado
-                materialCodeInput.classList.add('is-invalid');
+                input.classList.add('is-invalid');
                 materialNameInput.classList.add('is-invalid');
             }
         });
+    });
 
-        // Lógica para remover o material
-        const removeMaterialBtn = newMaterialRow.querySelector('.removeMaterialBtn');
-        removeMaterialBtn.addEventListener('click', () => newMaterialRow.remove());
+    return newTable;
+}
 
-        materialTable.appendChild(newMaterialRow);
-    }
+
+    // Função para adicionar material a um nível
+function adicionarMaterial(newTable) {
+    const materialTable = newTable.querySelector('.table-bordered tbody');
+    const newMaterialRow = document.createElement('tr');
+    newMaterialRow.innerHTML = `
+        <td><input type="text" class="form-control form-control-sm materialCode" placeholder="Código"></td>
+        <td><input type="text" class="form-control form-control-sm materialName" placeholder="Nome" readonly></td>
+        <td><input type="number" class="form-control form-control-sm" placeholder="Quantidade"></td>
+        <td class="text-center">
+            <button type="button" class="btn btn-danger btn-sm rounded-circle removeMaterialBtn"><i class="bi bi-trash"></i></button>
+        </td>
+    `;
+    
+    // Lógica para buscar nome do material
+    const materialCodeInput = newMaterialRow.querySelector('.materialCode');
+    const materialNameInput = newMaterialRow.querySelector('.materialName');
+
+    materialCodeInput.addEventListener('input', () => {
+        const codigo = materialCodeInput.value.trim();
+        const material = listaDeMateriais.find(item => item.id.toString() === codigo);
+
+        if (material) {
+            materialNameInput.value = material.nome;
+            materialCodeInput.classList.remove('is-invalid');
+            materialNameInput.classList.remove('is-invalid');
+        } else {
+            materialNameInput.value = ''; // Limpa o nome se o material não for encontrado
+            materialCodeInput.classList.add('is-invalid');
+            materialNameInput.classList.add('is-invalid');
+        }
+    });
+
+    // Lógica para remover o material
+    const removeMaterialBtn = newMaterialRow.querySelector('.removeMaterialBtn');
+    removeMaterialBtn.addEventListener('click', () => newMaterialRow.remove());
+
+    materialTable.appendChild(newMaterialRow);
+}
 
     // Carregar os níveis ao abrir o modal
     carregarNiveis(posteId);
@@ -197,11 +219,20 @@ modal.innerHTML = `
             const nivelId = card.getAttribute('data-nivel-id'); // Recupera o ID do nível
             const nivelNome = card.querySelector('input').value.trim(); // Recupera o nome do nível
             
+            const materiais = [];
+            card.querySelectorAll('.table-bordered tbody tr').forEach((row) => {
+                const codigo = row.querySelector('td:nth-child(1) input').value;
+                const nome = row.querySelector('td:nth-child(2) input').value;
+                const quantidade = row.querySelector('td:nth-child(3) input').value;
+                materiais.push({ codigo, nome, quantidade });
+            });
+
             if (nivelNome) {
                 // Adiciona o nível com os materiais associados
                 niveis.push({
                     nivelId,  // Inclui o ID do nível para atualização, se necessário
                     nivelNome,
+                    materiais,
                 });
             }
         });
