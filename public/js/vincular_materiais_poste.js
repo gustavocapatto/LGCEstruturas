@@ -159,7 +159,7 @@ function vincularMateriaisPoste(posteId, posteNome) {
 
 
                 const materialNameInput = input.closest('tr').querySelector('.materialName');
-                const material = listaDeMateriais.find(item => item.id.toString() === searchTerm || item.nome.toLowerCase().includes(searchTerm));
+                const material = listaDeMateriais.find(item => item.id.toString() === searchTerm);
 
                 if (material) {
                     materialNameInput.value = material.nome;
@@ -214,7 +214,7 @@ function vincularMateriaisPoste(posteId, posteNome) {
 
             // Validação dos campos
             const material = listaDeMateriais.find(item =>
-                item.id.toString().includes(searchTerm) || item.nome.toLowerCase().includes(searchTerm)
+                item.id.toString().includes(searchTerm)
             );
 
             if (material) {
