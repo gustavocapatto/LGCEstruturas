@@ -28,7 +28,7 @@ function showSection(sectionId, menuItem) {
     }*/
 
         
-    if (sectionId === 'postes') {
+    if (sectionId === 'postes' || sectionId === 'montar_lista_materiais') {
         buscarPostes();
     }
   
