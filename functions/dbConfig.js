@@ -4,8 +4,8 @@ const mysql = require('mysql2/promise');
 const dbConfig = {
     host: 'sql.freedb.tech',
     user: 'freedb_lgcestrutura',
-    password: 'hsjUjsF5gKxv5mqrsXgz',
-    database: 'ruVgU3t&3A?ArP7',
+    password: 'ruVgU3t&3A?ArP7',
+    database: 'freedb_lgcestrutura',
 };
 
 const getConnection = async () => {
