@@ -1,4 +1,4 @@
-// Preenche o select com os postes da lista
+// Função para preencher o select com postes
 function preencherSelecaoPostes() {
   const selectElement = document.getElementById('selecaoPoste');
 
@@ -11,6 +11,16 @@ function preencherSelecaoPostes() {
     option.value = poste.id; // Assumindo que cada poste possui um ID único
     option.textContent = poste.nome; // Assumindo que cada poste possui um nome
     selectElement.appendChild(option);
+  });
+
+  // Adiciona o evento de seleção
+  selectElement.addEventListener('change', (event) => {
+    const selectedId = event.target.value; // ID do poste selecionado
+    const selectedPoste = listaDePostes.find(poste => poste.id == selectedId); // Busca o poste na lista
+
+    if (selectedPoste) {
+      console.log(`Código: ${selectedPoste.id}, Nome: ${selectedPoste.nome}, Quantidade: 1`);
+    }
   });
 }
 
