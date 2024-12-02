@@ -19,7 +19,7 @@ function preencherSelecaoPostes() {
     const selectedPoste = listaDePostes.find(poste => poste.id == selectedId); // Busca o poste na lista
 
     if (selectedPoste) {
-      console.log(`Código: ${selectedPoste.id}, Nome: ${selectedPoste.nome}, Quantidade: 1`);
+      console.log(`Código: ${selectedPoste.id_material}, Nome: ${selectedPoste.nome}, Quantidade: 1`);
     }
   });
 }
